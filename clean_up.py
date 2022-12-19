@@ -65,15 +65,22 @@ def data_cleaning(filepath: str) -> pd.DataFrame:
     return playlist
 
 def extract_to_sql():
+    # Extract folder directory
     folder_dir = os.getcwd()
+
+    # Create both playlist variables using data_cleaning function above
     playlist_1, playlist_2 = (data_cleaning(f'{folder_dir}\playlist1.csv'),
                           data_cleaning(f'{folder_dir}\playlist2.csv'))
 
+    # Create merged playlist, removing all duplicated songs
+    # Include only songs with a non-null preview_url
     merged_playlist = pd.merge(playlist_1, playlist_2, how='outer')     
     merged_playlist = merged_playlist[merged_playlist.duplicated() == False]
     merged_playlist = merged_playlist[merged_playlist['preview_url'].isna() == False]
 
+    # Creaet sqlite engine
     eng = create_engine('sqlite:///playlirst.db', echo = False)
+    # Save data to sql table
     merged_playlist.to_sql('Playlist_Data', con = eng, if_exists='append')
     
 if __name__ == '__main__':
